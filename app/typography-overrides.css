@@ -1,0 +1,15 @@
+/* The display face is heavy enough that aggressive negative tracking makes
+   adjacent glyphs collide, especially in Safari at large sizes. */
+.landing-hero h1,
+.tool-intro h1 {
+  letter-spacing: -0.025em;
+}
+
+.tool-card h2 {
+  letter-spacing: -0.018em;
+}
+
+.raw-dropzone h2,
+.raw-queue h2 {
+  letter-spacing: -0.035em;
+}

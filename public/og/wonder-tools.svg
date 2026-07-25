@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#edf2ee"/>
+  <circle cx="1020" cy="90" r="250" fill="#ff5638" opacity=".9"/>
+  <circle cx="1090" cy="520" r="180" fill="#7659e8" opacity=".9"/>
+  <text x="84" y="115" fill="#ff5638" font-family="monospace" font-size="24" font-weight="700" letter-spacing="5">WONDER TOOLS / LOCAL BY DEFAULT</text>
+  <text x="80" y="285" fill="#14211d" font-family="Arial, sans-serif" font-size="108" font-weight="800" letter-spacing="-6">Useful tools.</text>
+  <text x="80" y="400" fill="#14211d" font-family="Arial, sans-serif" font-size="72" font-weight="800" letter-spacing="-4">Nothing leaves your device.</text>
+  <text x="84" y="530" fill="#5c6b66" font-family="Arial, sans-serif" font-size="26">Image Splitter · QR Code Generator · RAW to DNG</text>
+</svg>

@@ -1,0 +1,25 @@
+/* RAW to DNG desktop composition: keep the workflow in the wide column and
+   reserve the dark facts panel for a stable, readable sidebar. */
+.raw-dropzone {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.raw-queue {
+  grid-column: 1;
+  grid-row: 3;
+}
+
+.raw-facts {
+  grid-column: 2;
+  grid-row: 2 / span 2;
+}
+
+@media (max-width: 760px) {
+  .raw-dropzone,
+  .raw-queue,
+  .raw-facts {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}

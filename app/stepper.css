@@ -1,0 +1,56 @@
+.stepper-field > span:first-child {
+  margin-bottom: 9px;
+}
+
+.number-stepper {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #f8faf8;
+}
+
+.number-stepper input {
+  min-width: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 12px 8px;
+  background: transparent;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+
+.number-stepper input::-webkit-outer-spin-button,
+.number-stepper input::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+.stepper-button {
+  width: 100%;
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.stepper-button:not(:disabled):hover {
+  background: #e9efeb;
+  color: var(--signal);
+}
+
+.stepper-button:disabled {
+  opacity: .3;
+  cursor: not-allowed;
+}
+
+.number-stepper:focus-within {
+  border-color: var(--signal);
+  box-shadow: 0 0 0 3px rgb(255 86 56 / .14);
+}
