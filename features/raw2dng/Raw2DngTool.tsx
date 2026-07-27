@@ -2,6 +2,7 @@
 
 import JSZip from "jszip";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   createQueueWindow,
   createTask,
@@ -17,10 +18,12 @@ interface PendingJob { file: File; taskId: string; }
 const acceptedFormats = ".cr2,.cr3,.nef,.arw,.raf,.rw2,.orf,.dng";
 
 export function Raw2DngTool() {
+  const t = useTranslations("raw");
+  const statusT = useTranslations("status");
   const capability = useMemo<CapabilityProfile>(() => detectCapabilityProfile(), []);
   const [tasks, setTasks] = useState<ConversionTask[]>([]);
   const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus>("checking");
-  const [runtimeMessage, setRuntimeMessage] = useState("Loading the local conversion engine…");
+  const [runtimeMessage, setRuntimeMessage] = useState(t("preparing"));
   const [dragging, setDragging] = useState(false);
   const queueRef = useRef<PendingJob[]>([]);
   const activeIdsRef = useRef(new Set<string>());
@@ -70,13 +73,13 @@ export function Raw2DngTool() {
   }
 
   const completed = tasks.filter((task) => task.outputBlob && task.outputFileName).length;
-  return <section className="raw-workbench" aria-label="RAW to DNG converter">
-    <div className="raw-status" data-status={runtimeStatus}><span className="status-dot" aria-hidden="true" /><div><p className="kicker">LOCAL CONVERSION ENGINE</p><strong>{runtimeStatus === "checking" ? "Preparing WebAssembly" : runtimeStatus === "ready" ? "Ready to convert" : "Engine unavailable"}</strong><p>{runtimeMessage}</p></div></div>
+  return <section className="raw-workbench" aria-label={t("metadataTitle")}>
+    <div className="raw-status" data-status={runtimeStatus}><span className="status-dot" aria-hidden="true" /><div><p className="kicker">{t("engine")}</p><strong>{runtimeStatus === "checking" ? t("preparing") : runtimeStatus === "ready" ? t("ready") : t("unavailable")}</strong><p>{runtimeMessage}</p></div></div>
     <section className={`raw-dropzone ${dragging ? "is-dragging" : ""} ${runtimeStatus !== "ready" ? "is-disabled" : ""}`} onDragOver={(event) => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={(event) => { event.preventDefault(); setDragging(false); if (runtimeStatus === "ready") addFiles(Array.from(event.dataTransfer.files)); }}>
-      <p className="kicker">STEP 01 — SELECT RAW FILES</p><h2>Drop your camera originals here.</h2><p>CR2, CR3, NEF, ARW, RAF, RW2, ORF, and DNG. The conversion happens in your browser.</p><button type="button" disabled={runtimeStatus !== "ready"} onClick={() => inputRef.current?.click()}>Choose RAW files</button><input ref={inputRef} hidden type="file" accept={acceptedFormats} multiple onChange={(event) => addFiles(Array.from(event.target.files ?? []))} />
+      <p className="kicker">{t("select")}</p><h2>{t("drop")}</h2><p>{t("formats")}</p><button type="button" disabled={runtimeStatus !== "ready"} onClick={() => inputRef.current?.click()}>{t("choose")}</button><input ref={inputRef} hidden type="file" accept={acceptedFormats} multiple onChange={(event) => addFiles(Array.from(event.target.files ?? []))} />
     </section>
-    <section className="raw-queue" aria-live="polite"><div className="raw-queue-heading"><div><p className="kicker">STEP 02 — CONVERSION QUEUE</p><h2>{tasks.length ? `${tasks.length} file${tasks.length === 1 ? "" : "s"} in this session` : "Nothing in the queue yet."}</h2></div><button className="quiet-button" type="button" disabled={!completed} onClick={() => void downloadAll()}>Download all{completed ? ` (${completed})` : ""}</button></div>{tasks.length === 0 ? <p className="queue-empty">Choose a RAW file to see conversion progress and downloads here.</p> : <div className="raw-task-list">{tasks.map((task) => <article className="raw-task" key={task.id}><div className="raw-task-row"><strong>{task.fileName}</strong><span className={`task-state is-${task.status}`}>{task.status}</span></div><div className="raw-task-row task-meta"><span>{formatBytes(task.size)}</span><span>{task.warning ?? task.message}</span></div><div className="progress-track"><span style={{ width: `${task.progress}%` }} /></div>{task.error ? <p className="task-error">{task.error}</p> : null}{task.outputBlob ? <button className="quiet-button" type="button" onClick={() => download(task)}>Download {task.outputFileName}</button> : null}</article>)}</div>}</section>
-    <aside className="raw-facts"><p className="kicker">WORKING LOCALLY</p><dl><div><dt>Privacy</dt><dd>Files never leave your browser.</dd></div><div><dt>Batch limit</dt><dd>{capability.maxBatchItems} files on this device.</dd></div><div><dt>File limit</dt><dd>{Math.round(capability.maxFileBytes / 1024 / 1024)} MB per source file.</dd></div></dl></aside>
+    <section className="raw-queue" aria-live="polite"><div className="raw-queue-heading"><div><p className="kicker">{t("queue")}</p><h2>{tasks.length ? t("session", { count: tasks.length }) : t("empty")}</h2></div><button className="quiet-button" type="button" disabled={!completed} onClick={() => void downloadAll()}>{t("downloadAll")}{completed ? ` (${completed})` : ""}</button></div>{tasks.length === 0 ? <p className="queue-empty">{t("queueHint")}</p> : <div className="raw-task-list">{tasks.map((task) => <article className="raw-task" key={task.id}><div className="raw-task-row"><strong>{task.fileName}</strong><span className={`task-state is-${task.status}`}>{statusT(task.status === "complete" ? "complete" : task.status === "error" ? "error" : task.status === "queued" ? "queued" : "gated" as never)}</span></div><div className="raw-task-row task-meta"><span>{formatBytes(task.size)}</span><span>{task.warning ?? task.message}</span></div><div className="progress-track"><span style={{ width: `${task.progress}%` }} /></div>{task.error ? <p className="task-error">{task.error}</p> : null}{task.outputBlob ? <button className="quiet-button" type="button" onClick={() => download(task)}>{t("download", { name: task.outputFileName! })}</button> : null}</article>)}</div>}</section>
+    <aside className="raw-facts"><p className="kicker">{t("working")}</p><dl><div><dt>{t("privacy")}</dt><dd>{t("privacyValue")}</dd></div><div><dt>{t("batch")}</dt><dd>{capability.maxBatchItems} files on this device.</dd></div><div><dt>{t("fileLimit")}</dt><dd>{Math.round(capability.maxFileBytes / 1024 / 1024)} {t("perFile")}</dd></div></dl></aside>
   </section>;
 }
 

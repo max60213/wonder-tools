@@ -1,3 +1,6 @@
+import type { Locale } from "@/i18n/routing";
+import { getMessages } from "@/i18n/messages";
+
 type ToolKey = "split" | "qr-code" | "raw2dng";
 
 type ToolSeo = {
@@ -48,8 +51,47 @@ const content: Record<ToolKey, ToolSeo> = {
   },
 };
 
-function JsonLd({ tool, data }: { tool: ToolKey; data: ToolSeo }) {
-  const url = `https://tools.wonderstudio.tw/${tool === "qr-code" ? "qr-code" : tool}/`;
+const zhHantContent: Record<ToolKey, ToolSeo> = {
+  split: {
+    title: "圖片分割 — 適合社群、印刷與版面的圖片工具",
+    description: "不需上傳圖片，就能將單張圖片精準切成 PNG 或 JPG 網格圖片。",
+    category: "圖片處理",
+    features: ["支援原始比例、1:1、4:3、16:9 與自訂裁切比例", "列數與欄數可從 1 調整至 50", "將 PNG 或 JPG 圖片打包成單一 ZIP 檔案", "瀏覽器本機處理，不需帳號也不會上傳"],
+    steps: ["選擇圖片，或將圖片拖曳到工作區。", "選擇裁切比例，再調整網格列數與欄數。", "如果需要重新構圖，移動裁切位置。", "選擇 PNG 或 JPG，下載切割後的 ZIP 檔案。"],
+    faqs: [
+      { question: "圖片分割會上傳我的圖片嗎？", answer: "不會。圖片會在瀏覽器本機解碼與切割，不會傳送到伺服器。" },
+      { question: "可以設定多少列與欄？", answer: "列數與欄數都可以設定為 1 到 50。" },
+      { question: "可以匯出哪些檔案？", answer: "每張圖片可匯出為 PNG 或 JPG，所有圖片會一起下載成 ZIP 壓縮檔。" },
+    ],
+  },
+  "qr-code": {
+    title: "適合連結、印刷與 Wi-Fi 的免費 QR Code 產生器",
+    description: "直接在瀏覽器建立 QR Code，並下載清晰的 SVG 或 PNG 檔案。",
+    category: "設計與印刷",
+    features: ["支援連結、純文字、Wi-Fi 資訊與聯絡資料", "SVG 匯出，適合印刷與設計軟體", "PNG 匯出，適合螢幕與快速分享", "本機產生，不需帳號也不會上傳資料"],
+    steps: ["輸入連結、文字、Wi-Fi 認證資訊或聯絡資料。", "依照使用情境選擇錯誤修正等級。", "在預覽區檢查產生的 QR Code。", "印刷下載 SVG，數位使用則可下載 PNG。"],
+    faqs: [
+      { question: "這個 QR Code 產生器免費嗎？", answer: "免費。無需帳號或訂閱就能產生並下載 QR Code。" },
+      { question: "QR Code 可以用於印刷嗎？", answer: "可以。SVG 適合印刷，縮放時仍能保持清晰；PNG 則適合螢幕與快速分享。" },
+      { question: "我的 QR Code 內容會被儲存嗎？", answer: "不會。QR Code 在瀏覽器本機產生，內容不會上傳。" },
+    ],
+  },
+  raw2dng: {
+    title: "給攝影師使用的免費 RAW 轉 DNG 工具",
+    description: "在瀏覽器本機將支援的相機 RAW 檔案轉成 DNG，不需上傳照片。",
+    category: "攝影工作流程",
+    features: ["支援 Sony ARW、Canon CR2／CR3、Nikon NEF、Fujifilm RAF 等格式", "支援單檔與批次轉換", "可下載單一 DNG 或 ZIP 壓縮檔", "LibRaw 與 DNG 處理在 Web Worker 本機執行"],
+    steps: ["等待轉換引擎準備完成。", "選擇一個或多個 RAW 檔案，或拖曳到工作區。", "在佇列中查看轉換進度。", "轉換完成後下載個別 DNG，或下載完整 ZIP。"],
+    faqs: [
+      { question: "我的 RAW 照片會被上傳嗎？", answer: "不會。轉換在瀏覽器本機執行，相機檔案會留在你的裝置上。" },
+      { question: "支援哪些 RAW 格式？", answer: "支援 ARW、CR2、CR3、NEF、RAF、RW2、ORF 等常見格式，以及 LibRaw 執行環境支援的其他格式。" },
+      { question: "可以一次轉換多個 RAW 檔案嗎？", answer: "可以。選擇多個檔案後，可以個別下載 DNG，或一次下載成 ZIP 壓縮檔。" },
+    ],
+  },
+};
+
+function JsonLd({ tool, data, locale }: { tool: ToolKey; data: ToolSeo; locale: Locale }) {
+  const url = `https://tools.wonderstudio.tw/${locale}/${tool === "qr-code" ? "qr-code" : tool}/`;
   const application = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
@@ -70,17 +112,18 @@ function JsonLd({ tool, data }: { tool: ToolKey; data: ToolSeo }) {
   return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(application) }} /><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faq) }} /></>;
 }
 
-export function ToolSeoContent({ tool }: { tool: ToolKey }) {
-  const data = content[tool];
+export function ToolSeoContent({ tool, locale = "en" }: { tool: ToolKey; locale?: Locale }) {
+  const data = locale === "zh-Hant" ? zhHantContent[tool] : content[tool];
+  const labels = getMessages(locale).seo;
   return <>
-    <JsonLd tool={tool} data={data} />
+    <JsonLd tool={tool} data={data} locale={locale} />
     <article className="tool-seo-content">
-      <section className="seo-section seo-lede"><p className="kicker">{data.category.toUpperCase()}</p><h2>{data.title}</h2><p>{data.description} Everything is processed on your device, so you can work with private files without creating an account.</p></section>
+      <section className="seo-section seo-lede"><p className="kicker">{data.category.toUpperCase()}</p><h2>{data.title}</h2><p>{data.description} {labels.privacyLede}</p></section>
       <div className="seo-columns">
-        <section className="seo-section"><p className="kicker">WHAT IT DOES</p><h2>Made for a focused workflow.</h2><ul>{data.features.map((feature) => <li key={feature}>{feature}</li>)}</ul></section>
-        <section className="seo-section"><p className="kicker">HOW TO USE IT</p><h2>Four simple steps.</h2><ol>{data.steps.map((step) => <li key={step}>{step}</li>)}</ol></section>
+        <section className="seo-section"><p className="kicker">{labels.whatItDoes}</p><h2>{labels.focused}</h2><ul>{data.features.map((feature) => <li key={feature}>{feature}</li>)}</ul></section>
+        <section className="seo-section"><p className="kicker">{labels.howTo}</p><h2>{labels.fourSteps}</h2><ol>{data.steps.map((step) => <li key={step}>{step}</li>)}</ol></section>
       </div>
-      <section className="seo-section seo-faq"><p className="kicker">FAQ</p><h2>Common questions.</h2><div>{data.faqs.map((item) => <details key={item.question}><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div></section>
+      <section className="seo-section seo-faq"><p className="kicker">{labels.faq}</p><h2>{labels.questions}</h2><div>{data.faqs.map((item) => <details key={item.question}><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div></section>
     </article>
   </>;
 }

@@ -13,3 +13,34 @@
 .raw-queue h2 {
   letter-spacing: -0.035em;
 }
+
+/* Traditional Chinese glyphs need more vertical breathing room than the
+   compact Latin display scale, especially in Safari. Keep this scoped to the
+   localized tree so the English layout remains unchanged. */
+.locale-zh-Hant {
+  line-height: 1.65;
+}
+
+.locale-zh-Hant .kicker {
+  line-height: 1.45;
+}
+
+.locale-zh-Hant .landing-hero h1 {
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.locale-zh-Hant .landing-hero > p:last-child,
+.locale-zh-Hant .tool-card p,
+.locale-zh-Hant .tool-intro > p:last-child,
+.locale-zh-Hant .seo-section p:not(.kicker),
+.locale-zh-Hant .seo-section li {
+  line-height: 1.85;
+}
+
+.locale-zh-Hant .tool-card h2,
+.locale-zh-Hant .tool-intro h1,
+.locale-zh-Hant .raw-dropzone h2,
+.locale-zh-Hant .raw-queue h2 {
+  line-height: 1.2;
+}

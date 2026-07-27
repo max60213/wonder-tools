@@ -11,6 +11,7 @@
   "dependencies": {
     "jszip": "^3.10.1",
     "next": "16.2.11",
+    "next-intl": "^4.13.4",
     "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4"

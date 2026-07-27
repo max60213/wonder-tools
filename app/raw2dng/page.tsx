@@ -11,5 +11,5 @@ export const metadata: Metadata = {
 };
 
 export default function Raw2DngPage() {
-  return <main><SiteHeader active="raw2dng" /><ToolFrame code="03" name="RAW to DNG" summary="Convert supported camera RAW files to DNG without uploading them anywhere."><Raw2DngTool /><ToolSeoContent tool="raw2dng" /></ToolFrame></main>;
+  return <main><SiteHeader locale="en" active="raw2dng" /><ToolFrame code="03" name="RAW to DNG" summary="Convert supported camera RAW files to DNG without uploading them anywhere."><Raw2DngTool /><ToolSeoContent tool="raw2dng" /></ToolFrame></main>;
 }

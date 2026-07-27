@@ -2,14 +2,16 @@
 
 import JSZip from "jszip";
 import { ChangeEvent, DragEvent, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 
 type Format = "png" | "jpeg";
 type Ratio = "original" | "1:1" | "4:3" | "16:9" | "custom";
 type Crop = { x: number; y: number; width: number; height: number };
 
-function getCrop(image: HTMLImageElement, ratio: Ratio, customWidth: number, customHeight: number, position: number): Crop {
+function getCrop(image: HTMLImageElement, ratio: Ratio, customWidth: number, customHeight: number, position: number, flipped: boolean): Crop {
   if (ratio === "original") return { x: 0, y: 0, width: image.naturalWidth, height: image.naturalHeight };
-  const target = ratio === "custom" ? customWidth / customHeight : Number(ratio.split(":")[0]) / Number(ratio.split(":")[1]);
+  const [widthPart, heightPart] = ratio === "custom" ? [customWidth, customHeight] : ratio.split(":").map(Number);
+  const target = (flipped ? heightPart / widthPart : widthPart / heightPart);
   const natural = image.naturalWidth / image.naturalHeight;
   if (target >= natural) {
     const height = image.naturalWidth / target;
@@ -45,9 +47,11 @@ function NumberStepper({ label, value, onChange }: { label: string; value: numbe
 }
 
 export function ImageSplitterTool() {
+  const t = useTranslations("split");
   const [file, setFile] = useState<File | null>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [ratio, setRatio] = useState<Ratio>("original");
+  const [flipped, setFlipped] = useState(false);
   const [customWidth, setCustomWidth] = useState(16);
   const [customHeight, setCustomHeight] = useState(9);
   const [position, setPosition] = useState(50);
@@ -61,9 +65,9 @@ export function ImageSplitterTool() {
 
   const safeCustomWidth = Math.max(1, customWidth);
   const safeCustomHeight = Math.max(1, customHeight);
-  const crop = image ? getCrop(image, ratio, safeCustomWidth, safeCustomHeight, position) : null;
-  const cropAtStart = image ? getCrop(image, ratio, safeCustomWidth, safeCustomHeight, 0) : null;
-  const cropAtEnd = image ? getCrop(image, ratio, safeCustomWidth, safeCustomHeight, 100) : null;
+  const crop = image ? getCrop(image, ratio, safeCustomWidth, safeCustomHeight, position, flipped) : null;
+  const cropAtStart = image ? getCrop(image, ratio, safeCustomWidth, safeCustomHeight, 0, flipped) : null;
+  const cropAtEnd = image ? getCrop(image, ratio, safeCustomWidth, safeCustomHeight, 100, flipped) : null;
   const canPosition = cropAtStart && cropAtEnd
     ? cropAtStart.x !== cropAtEnd.x || cropAtStart.y !== cropAtEnd.y
     : false;
@@ -88,11 +92,11 @@ export function ImageSplitterTool() {
 
   function load(nextFile?: File) {
     if (!nextFile) return;
-    if (!nextFile.type.startsWith("image/")) { setError("Choose an image file (PNG, JPG, WebP, or similar)."); return; }
+    if (!nextFile.type.startsWith("image/")) { setError(t("imageError")); return; }
     const source = URL.createObjectURL(nextFile);
     const nextImage = new Image();
-    nextImage.onload = () => { setFile(nextFile); setImage(nextImage); setRatio("original"); setPosition(50); setError(""); };
-    nextImage.onerror = () => { URL.revokeObjectURL(source); setError("This image could not be opened."); };
+    nextImage.onload = () => { setFile(nextFile); setImage(nextImage); setRatio("original"); setFlipped(false); setPosition(50); setError(""); };
+    nextImage.onerror = () => { URL.revokeObjectURL(source); setError(t("imageError")); };
     nextImage.src = source;
   }
 
@@ -119,18 +123,18 @@ export function ImageSplitterTool() {
       }
       const base = file.name.replace(/\.[^.]+$/, "") || "image";
       saveBlob(`${base}-${rows}x${columns}-split.zip`, await zip.generateAsync({ type: "blob" }));
-    } catch { setError("The image could not be split. Try a smaller image or fewer tiles."); }
+    } catch { setError(t("imageError")); }
     finally { setWorking(false); }
   }
 
   return <section className="split-workbench">
-    <div className="split-controls"><label className={`drop-target ${dragging ? "is-dragging" : ""}`} onDragOver={(event) => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={onDrop}><input type="file" accept="image/*" onChange={onFile} /><span className="drop-symbol">＋</span><strong>{file ? file.name : "Choose an image"}</strong><small>{file ? `${image?.naturalWidth} × ${image?.naturalHeight}px` : "or drop it here — it stays on your device"}</small></label>
-      {image ? <><div className="split-control-grid"><NumberStepper label="Rows" value={rows} onChange={setRows} /><NumberStepper label="Columns" value={columns} onChange={setColumns} /></div>
-        <fieldset className="ratio-field"><legend>Crop ratio</legend>{(["original", "1:1", "4:3", "16:9", "custom"] as Ratio[]).map((item) => <label key={item}><input type="radio" checked={ratio === item} onChange={() => { setRatio(item); setPosition(50); }} />{item === "original" ? "Original" : item === "custom" ? "Custom" : item}</label>)}</fieldset>
-        {ratio === "custom" ? <div className="split-control-grid compact"><label><span>Width</span><input type="number" min="1" value={customWidth} onChange={(event) => setCustomWidth(Number(event.target.value))} /></label><label><span>Height</span><input type="number" min="1" value={customHeight} onChange={(event) => setCustomHeight(Number(event.target.value))} /></label></div> : null}
-        {canPosition ? <label className="position-control"><span>Crop position</span><input type="range" min="0" max="100" value={position} onChange={(event) => setPosition(Number(event.target.value))} /><small>{crop && crop.x > 0 ? "Left → Right" : "Top → Bottom"}</small></label> : null}
-        <fieldset className="format-field"><legend>Tiles</legend>{(["png", "jpeg"] as Format[]).map((item) => <label key={item}><input type="radio" checked={format === item} onChange={() => setFormat(item)} />{item === "jpeg" ? "JPG" : "PNG"}</label>)}</fieldset><button type="button" onClick={split} disabled={working}>{working ? "Building ZIP…" : `Download ${rows} × ${columns} ZIP`}</button></> : null}
+    <div className="split-controls"><label className={`drop-target ${dragging ? "is-dragging" : ""}`} onDragOver={(event) => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={onDrop}><input type="file" accept="image/*" onChange={onFile} /><span className="drop-symbol">＋</span><strong>{file ? file.name : t("choose")}</strong><small>{file ? `${image?.naturalWidth} × ${image?.naturalHeight}px` : t("drop")}</small></label>
+      {image ? <><div className="split-control-grid"><NumberStepper label={t("rows")} value={rows} onChange={setRows} /><NumberStepper label={t("columns")} value={columns} onChange={setColumns} /></div>
+        <fieldset className="ratio-field"><div className="ratio-heading"><legend>{t("cropRatio")}</legend><button type="button" className="flip-button" onClick={() => { if (ratio === "custom") { setCustomWidth(safeCustomHeight); setCustomHeight(safeCustomWidth); } else { setFlipped((current) => !current); } setPosition(50); }} disabled={ratio === "original"} aria-label={t("flip")}><span aria-hidden="true">↔</span> {t("flip")}</button></div>{(["original", "1:1", "4:3", "16:9", "custom"] as Ratio[]).map((item) => <label key={item}><input type="radio" checked={ratio === item} onChange={() => { setRatio(item); setFlipped(false); setPosition(50); }} />{item === "original" ? t("original") : item === "custom" ? t("custom") : item}</label>)}</fieldset>
+        {ratio === "custom" ? <div className="split-control-grid compact"><label><span>{t("width")}</span><input type="number" min="1" value={customWidth} onChange={(event) => setCustomWidth(Number(event.target.value))} /></label><label><span>{t("height")}</span><input type="number" min="1" value={customHeight} onChange={(event) => setCustomHeight(Number(event.target.value))} /></label></div> : null}
+        {canPosition ? <label className="position-control"><span>{t("position")}</span><input type="range" min="0" max="100" value={position} onChange={(event) => setPosition(Number(event.target.value))} /><small>{crop && crop.x > 0 ? t("leftRight") : t("topBottom")}</small></label> : null}
+        <fieldset className="format-field"><legend>{t("tiles")}</legend>{(["png", "jpeg"] as Format[]).map((item) => <label key={item}><input type="radio" checked={format === item} onChange={() => setFormat(item)} />{item === "jpeg" ? "JPG" : "PNG"}</label>)}</fieldset><button type="button" onClick={split} disabled={working}>{working ? t("building") : t("download", { rows, columns })}</button></> : null}
       {error ? <p className="form-error">{error}</p> : null}</div>
-    <div className="split-preview"><div className="preview-label"><span>GRID PREVIEW</span><span>{image ? `${rows} × ${columns}` : "WAITING FOR IMAGE"}</span></div>{image ? <canvas ref={canvasRef} aria-label="Image grid preview" /> : <p className="empty-preview">Your image grid will appear here.</p>}<p className="split-note">{image ? "Every tile is created in this browser and packed into one ZIP." : "No image is uploaded to a server."}</p></div>
+    <div className="split-preview"><div className="preview-label"><span>{t("gridPreview")}</span><span>{image ? `${rows} × ${columns}` : t("waiting")}</span></div>{image ? <canvas ref={canvasRef} aria-label={t("gridPreview")} /> : <p className="empty-preview">{t("gridHere")}</p>}<p className="split-note">{image ? t("tileNote") : t("noUpload")}</p></div>
   </section>;
 }

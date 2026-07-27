@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import QRCode from "qrcode";
 
 const SIZE = 960;
@@ -14,6 +15,7 @@ function download(filename: string, href: string) {
 }
 
 export function QrCodeTool() {
+  const t = useTranslations("qr");
   const [value, setValue] = useState(INITIAL_VALUE);
   const [level, setLevel] = useState<"L" | "M" | "Q" | "H">("M");
   const [format, setFormat] = useState<"svg" | "png">("svg");
@@ -34,7 +36,7 @@ export function QrCodeTool() {
 
   const output = format === "svg" ? svg : png;
   return <section className="qr-workbench">
-    <div className="qr-controls"><label><span>Content</span><textarea value={value} onChange={(event) => setValue(event.target.value)} rows={6} placeholder="A link, text, Wi‑Fi credentials, or contact details" /></label><div className="control-row"><label><span>Error correction</span><select value={level} onChange={(event) => setLevel(event.target.value as typeof level)}><option value="L">L — compact</option><option value="M">M — balanced</option><option value="Q">Q — robust</option><option value="H">H — resilient</option></select></label><fieldset><legend>Export</legend>{(["svg", "png"] as const).map((item) => <label key={item}><input type="radio" checked={format === item} onChange={() => setFormat(item)} />{item.toUpperCase()}</label>)}</fieldset></div>{error ? <p className="form-error">{error}</p> : null}<button type="button" disabled={!output} onClick={() => { if (format === "svg") { const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" })); download("wonder-qr-code.svg", url); URL.revokeObjectURL(url); } else download("wonder-qr-code.png", png); }}>Download {format.toUpperCase()}</button></div>
-    <div className="qr-preview"><div className="preview-label"><span>LIVE PREVIEW</span><span>{format.toUpperCase()}</span></div>{output ? (format === "svg" ? <div className="qr-art" dangerouslySetInnerHTML={{ __html: svg }} /> : <img src={png} alt="Generated QR code" />) : <p>Enter content to generate a code.</p>}<dl><div><dt>Processing</dt><dd>On device</dd></div><div><dt>Output</dt><dd>{format.toUpperCase()}</dd></div><div><dt>Correction</dt><dd>{level}</dd></div></dl></div>
+    <div className="qr-controls"><label><span>{t("content")}</span><textarea value={value} onChange={(event) => setValue(event.target.value)} rows={6} placeholder={t("placeholder")} /></label><div className="control-row"><label><span>{t("correction")}</span><select value={level} onChange={(event) => setLevel(event.target.value as typeof level)}><option value="L">L — {t("compact")}</option><option value="M">M — {t("balanced")}</option><option value="Q">Q — {t("robust")}</option><option value="H">H — {t("resilient")}</option></select></label><fieldset><legend>{t("export")}</legend>{(["svg", "png"] as const).map((item) => <label key={item}><input type="radio" checked={format === item} onChange={() => setFormat(item)} />{item.toUpperCase()}</label>)}</fieldset></div>{error ? <p className="form-error">{error}</p> : null}<button type="button" disabled={!output} onClick={() => { if (format === "svg") { const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" })); download("wonder-qr-code.svg", url); URL.revokeObjectURL(url); } else download("wonder-qr-code.png", png); }}>{t("download", { format: format.toUpperCase() })}</button></div>
+    <div className="qr-preview"><div className="preview-label"><span>{t("live")}</span><span>{format.toUpperCase()}</span></div>{output ? (format === "svg" ? <div className="qr-art" dangerouslySetInnerHTML={{ __html: svg }} /> : <img src={png} alt={t("generatedAlt")} />) : <p>{t("enter")}</p>}<dl><div><dt>{t("processing")}</dt><dd>{t("device")}</dd></div><div><dt>{t("output")}</dt><dd>{format.toUpperCase()}</dd></div><div><dt>{t("correction")}</dt><dd>{level}</dd></div></dl></div>
   </section>;
 }
