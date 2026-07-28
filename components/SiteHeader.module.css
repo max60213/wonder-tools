@@ -2,12 +2,13 @@
   color: var(--ink);
 }
 
-.topBar,
+.brandBar,
+.utilityBar,
 .bottomBar {
   display: contents;
 }
 
-@media (max-width:860px) {
+@media (max-width:980px) {
   .header {
     min-height: 60px;
     padding: 12px 0 10px;
@@ -26,13 +27,23 @@
     white-space: nowrap;
   }
 
-  .topBar {
+  .brandBar,
+  .utilityBar {
     display: flex;
-    flex: 1 1 auto;
-    min-width: 0;
     padding: 0 5vw;
     align-items: center;
     gap: 14px;
+  }
+
+  .brandBar {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .utilityBar {
+    flex: 0 0 auto;
+    margin-left: auto;
+    padding-left: 0;
   }
 
   .bottomBar {
@@ -66,7 +77,4 @@
     white-space: nowrap;
   }
 
-  .topBar :global(.language-switch) {
-    margin-left: auto;
-  }
 }

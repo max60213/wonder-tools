@@ -50,19 +50,10 @@ export function SiteHeader({
   const languageHref = `/${otherLocale}${pathWithoutLocale}`;
   return (
     <header className={`site-header ${styles.header}`}>
-      <div className={styles.topBar}>
+      <div className={styles.brandBar}>
         <Link className={`wordmark ${styles.wordmark}`} href={`/${locale}/`}>
           <span>WONDER</span>
           <span>TOOLS</span>
-        </Link>
-        <span className="privacy-mark">{labels.localPrivate}</span>
-        <Link
-          className="language-switch"
-          href={languageHref}
-          hrefLang={otherLocale}
-          aria-label={labels.language}
-        >
-          {otherLocale === "en" ? labels.english : labels.traditionalChinese}
         </Link>
       </div>
       <div className={styles.bottomBar}>
@@ -77,6 +68,17 @@ export function SiteHeader({
             </Link>
           ))}
         </nav>
+      </div>
+      <div className={styles.utilityBar}>
+        <span className="privacy-mark">{labels.localPrivate}</span>
+        <Link
+          className="language-switch"
+          href={languageHref}
+          hrefLang={otherLocale}
+          aria-label={labels.language}
+        >
+          {otherLocale === "en" ? labels.english : labels.traditionalChinese}
+        </Link>
       </div>
     </header>
   );
