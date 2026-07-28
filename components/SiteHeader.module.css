@@ -14,16 +14,18 @@
   .wordmark {
     display: flex;
     flex: 0 0 auto;
-    flex-direction: column;
-    gap: 2px;
+    flex-direction: row;
+    gap: .35em;
     line-height: 1;
     letter-spacing: .13em;
+    white-space: nowrap;
   }
 
   .header :global(nav) {
     order: 3;
-    width: fit-content;
-    max-width: 100%;
+    flex: 0 0 100%;
+    width: 100%;
+    max-width: none;
     justify-content: flex-start;
     gap: 2px;
     overflow-x: auto;
