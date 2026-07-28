@@ -5,16 +5,46 @@
 @media (max-width: 760px) {
   .header {
     min-height: 60px;
-    padding-block: 8px;
+    padding: 12px 5vw 10px;
+    flex-wrap: wrap;
+    gap: 8px 14px;
     align-items: center;
   }
 
   .wordmark {
     display: flex;
     flex: 0 0 auto;
-    flex-direction: column;
-    gap: 2px;
+    flex-direction: row;
+    gap: .35em;
     line-height: 1;
     letter-spacing: .13em;
+    white-space: nowrap;
+  }
+
+  .header :global(nav) {
+    order: 3;
+    width: fit-content;
+    max-width: 100%;
+    justify-content: flex-start;
+    gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .header :global(nav::-webkit-scrollbar) {
+    display: none;
+  }
+
+  .header :global(nav a) {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .header :global(.language-switch) {
+    margin-left: auto;
   }
 }

@@ -5,6 +5,7 @@ import { ChangeEvent, DragEvent, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
 type Format = "png" | "jpeg";
+type DownloadMode = "zip" | "files";
 type Ratio = "original" | "1:1" | "4:3" | "16:9" | "custom";
 type Crop = { x: number; y: number; width: number; height: number };
 
@@ -58,6 +59,7 @@ export function ImageSplitterTool() {
   const [rows, setRows] = useState(3);
   const [columns, setColumns] = useState(3);
   const [format, setFormat] = useState<Format>("png");
+  const [downloadMode, setDownloadMode] = useState<DownloadMode>("zip");
   const [working, setWorking] = useState(false);
   const [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
@@ -107,11 +109,11 @@ export function ImageSplitterTool() {
     if (!image || !crop || !file || working) return;
     setWorking(true); setError("");
     try {
-      const zip = new JSZip();
-      const folder = zip.folder("split-images")!;
+      const tiles: Array<{ name: string; blob: Blob }> = [];
       const tileWidth = crop.width / columns;
       const tileHeight = crop.height / rows;
       const extension = format === "jpeg" ? "jpg" : "png";
+      const base = file.name.replace(/\.[^.]+$/, "") || "image";
       for (let row = 0; row < rows; row += 1) for (let column = 0; column < columns; column += 1) {
         const tile = document.createElement("canvas");
         tile.width = Math.max(1, Math.round(tileWidth)); tile.height = Math.max(1, Math.round(tileHeight));
@@ -119,10 +121,16 @@ export function ImageSplitterTool() {
         if (!context) throw new Error("canvas");
         if (format === "jpeg") { context.fillStyle = "white"; context.fillRect(0, 0, tile.width, tile.height); }
         context.drawImage(image, crop.x + column * tileWidth, crop.y + row * tileHeight, tileWidth, tileHeight, 0, 0, tile.width, tile.height);
-        folder.file(`tile-${String(row + 1).padStart(2, "0")}-${String(column + 1).padStart(2, "0")}.${extension}`, await canvasBlob(tile, format));
+        tiles.push({ name: `${base}-${rows}x${columns}-${String(row + 1).padStart(2, "0")}-${String(column + 1).padStart(2, "0")}.${extension}`, blob: await canvasBlob(tile, format) });
       }
-      const base = file.name.replace(/\.[^.]+$/, "") || "image";
-      saveBlob(`${base}-${rows}x${columns}-split.zip`, await zip.generateAsync({ type: "blob" }));
+      if (downloadMode === "zip") {
+        const zip = new JSZip();
+        const folder = zip.folder("split-images")!;
+        tiles.forEach(({ name, blob }) => folder.file(name, blob));
+        saveBlob(`${base}-${rows}x${columns}-split.zip`, await zip.generateAsync({ type: "blob" }));
+      } else {
+        tiles.forEach(({ name, blob }) => saveBlob(name, blob));
+      }
     } catch { setError(t("imageError")); }
     finally { setWorking(false); }
   }
@@ -133,7 +141,9 @@ export function ImageSplitterTool() {
         <fieldset className="ratio-field"><div className="ratio-heading"><legend>{t("cropRatio")}</legend><button type="button" className="flip-button" onClick={() => { if (ratio === "custom") { setCustomWidth(safeCustomHeight); setCustomHeight(safeCustomWidth); } else { setFlipped((current) => !current); } setPosition(50); }} disabled={ratio === "original"} aria-label={t("flip")}><span aria-hidden="true">↔</span> {t("flip")}</button></div>{(["original", "1:1", "4:3", "16:9", "custom"] as Ratio[]).map((item) => <label key={item}><input type="radio" checked={ratio === item} onChange={() => { setRatio(item); setFlipped(false); setPosition(50); }} />{item === "original" ? t("original") : item === "custom" ? t("custom") : item}</label>)}</fieldset>
         {ratio === "custom" ? <div className="split-control-grid compact"><label><span>{t("width")}</span><input type="number" min="1" value={customWidth} onChange={(event) => setCustomWidth(Number(event.target.value))} /></label><label><span>{t("height")}</span><input type="number" min="1" value={customHeight} onChange={(event) => setCustomHeight(Number(event.target.value))} /></label></div> : null}
         {canPosition ? <label className="position-control"><span>{t("position")}</span><input type="range" min="0" max="100" value={position} onChange={(event) => setPosition(Number(event.target.value))} /><small>{crop && crop.x > 0 ? t("leftRight") : t("topBottom")}</small></label> : null}
-        <fieldset className="format-field"><legend>{t("tiles")}</legend>{(["png", "jpeg"] as Format[]).map((item) => <label key={item}><input type="radio" checked={format === item} onChange={() => setFormat(item)} />{item === "jpeg" ? "JPG" : "PNG"}</label>)}</fieldset><button type="button" onClick={split} disabled={working}>{working ? t("building") : t("download", { rows, columns })}</button></> : null}
+        <fieldset className="format-field"><legend>{t("tiles")}</legend>{(["png", "jpeg"] as Format[]).map((item) => <label key={item}><input type="radio" checked={format === item} onChange={() => setFormat(item)} />{item === "jpeg" ? "JPG" : "PNG"}</label>)}</fieldset>
+        <fieldset className="format-field"><legend>{t("downloadMode")}</legend>{(["zip", "files"] as DownloadMode[]).map((item) => <label key={item}><input type="radio" checked={downloadMode === item} onChange={() => setDownloadMode(item)} />{t(item)}</label>)}</fieldset>
+        <button type="button" onClick={split} disabled={working}>{working ? t(downloadMode === "zip" ? "buildingZip" : "buildingFiles") : t(downloadMode === "zip" ? "downloadZip" : "downloadFiles", { rows, columns })}</button></> : null}
       {error ? <p className="form-error">{error}</p> : null}</div>
     <div className="split-preview"><div className="preview-label"><span>{t("gridPreview")}</span><span>{image ? `${rows} × ${columns}` : t("waiting")}</span></div>{image ? <canvas ref={canvasRef} aria-label={t("gridPreview")} /> : <p className="empty-preview">{t("gridHere")}</p>}<p className="split-note">{image ? t("tileNote") : t("noUpload")}</p></div>
   </section>;

@@ -11,5 +11,5 @@ export const metadata: Metadata = {
 };
 
 export default function ImageSplitterPage() {
-  return <main><SiteHeader locale="en" active="split" /><ToolFrame code="01" name="Image Splitter" summary="Build a grid, adjust the crop, and download every tile in one archive."><ImageSplitterTool /><ToolSeoContent tool="split" /></ToolFrame></main>;
+  return <main><SiteHeader locale="en" active="split" /><ToolFrame code="01" name="Image Splitter" summary="Build a grid, adjust the crop, and download tiles as a ZIP or individual files."><ImageSplitterTool /><ToolSeoContent tool="split" /></ToolFrame></main>;
 }

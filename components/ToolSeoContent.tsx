@@ -17,12 +17,12 @@ const content: Record<ToolKey, ToolSeo> = {
     title: "Free image splitter for social media, print, and layouts",
     description: "Split one image into an exact grid of PNG or JPG tiles without uploading it.",
     category: "Image processing",
-    features: ["Original, 1:1, 4:3, 16:9, and custom crop ratios", "Adjustable rows and columns from 1 to 50", "PNG or JPG tiles packed into one ZIP file", "Local browser processing with no account or upload"],
-    steps: ["Choose an image or drop it into the work area.", "Pick a crop ratio, then adjust the grid rows and columns.", "Move the crop position if the image needs reframing.", "Choose PNG or JPG and download the tile ZIP."],
+    features: ["Original, 1:1, 4:3, 16:9, and custom crop ratios", "Adjustable rows and columns from 1 to 50", "Download PNG or JPG tiles as a ZIP or individual files", "Local browser processing with no account or upload"],
+    steps: ["Choose an image or drop it into the work area.", "Pick a crop ratio, then adjust the grid rows and columns.", "Move the crop position if the image needs reframing.", "Choose PNG or JPG, then download a ZIP or the individual tiles."],
     faqs: [
       { question: "Does Image Splitter upload my image?", answer: "No. The image is decoded and split locally in your browser. It is not sent to a server." },
       { question: "How many rows and columns can I use?", answer: "You can create between 1 and 50 rows and between 1 and 50 columns." },
-      { question: "What files can I export?", answer: "Each tile can be exported as PNG or JPG, and all tiles are downloaded together as a ZIP archive." },
+      { question: "Can I download the tiles individually?", answer: "Yes. Choose a ZIP archive for one download, or choose individual files to download each PNG or JPG tile separately." },
     ],
   },
   "qr-code": {
@@ -56,12 +56,12 @@ const zhHantContent: Record<ToolKey, ToolSeo> = {
     title: "圖片分割 — 適合社群、印刷與版面的圖片工具",
     description: "不需上傳圖片，就能將單張圖片精準切成 PNG 或 JPG 網格圖片。",
     category: "圖片處理",
-    features: ["支援原始比例、1:1、4:3、16:9 與自訂裁切比例", "列數與欄數可從 1 調整至 50", "將 PNG 或 JPG 圖片打包成單一 ZIP 檔案", "瀏覽器本機處理，不需帳號也不會上傳"],
-    steps: ["選擇圖片，或將圖片拖曳到工作區。", "選擇裁切比例，再調整網格列數與欄數。", "如果需要重新構圖，移動裁切位置。", "選擇 PNG 或 JPG，下載切割後的 ZIP 檔案。"],
+    features: ["支援原始比例、1:1、4:3、16:9 與自訂裁切比例", "列數與欄數可從 1 調整至 50", "PNG 或 JPG 圖片可打包成 ZIP，或逐一下載", "瀏覽器本機處理，不需帳號也不會上傳"],
+    steps: ["選擇圖片，或將圖片拖曳到工作區。", "選擇裁切比例，再調整網格列數與欄數。", "如果需要重新構圖，移動裁切位置。", "選擇 PNG 或 JPG，再選擇下載 ZIP 或個別檔案。"],
     faqs: [
       { question: "圖片分割會上傳我的圖片嗎？", answer: "不會。圖片會在瀏覽器本機解碼與切割，不會傳送到伺服器。" },
       { question: "可以設定多少列與欄？", answer: "列數與欄數都可以設定為 1 到 50。" },
-      { question: "可以匯出哪些檔案？", answer: "每張圖片可匯出為 PNG 或 JPG，所有圖片會一起下載成 ZIP 壓縮檔。" },
+      { question: "可以逐一下載切割後的圖片嗎？", answer: "可以。你可以選擇一次下載 ZIP 壓縮檔，也可以選擇個別檔案，分別下載每張 PNG 或 JPG 圖片。" },
     ],
   },
   "qr-code": {
