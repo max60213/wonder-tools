@@ -17,8 +17,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: L
     <section className="landing-hero"><p className="kicker">{t.kicker}</p><h1>{t.title}<br /><em>{t.titleEmphasis}</em></h1><p>{t.intro}</p></section>
     <section className="tool-index" aria-label={site.availableTools}>
       <ToolCard locale={locale} code="01" href="/image-splitter/" title={t.splitTitle} description={t.splitDescription} accent="signal" />
-      <ToolCard locale={locale} code="02" href="/qr-code/" title={t.qrTitle} description={t.qrDescription} accent="amber" />
-      <ToolCard locale={locale} code="03" href="/raw2dng/" title={t.rawTitle} description={t.rawDescription} accent="violet" />
+      <ToolCard locale={locale} code="02" href="/match-ratio/" title={t.resolutionTitle} description={t.resolutionDescription} accent="signal" />
+      <ToolCard locale={locale} code="03" href="/qr-code/" title={t.qrTitle} description={t.qrDescription} accent="amber" />
+      <ToolCard locale={locale} code="04" href="/raw2dng/" title={t.rawTitle} description={t.rawDescription} accent="violet" />
     </section>
   </main>;
 }

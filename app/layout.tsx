@@ -6,6 +6,7 @@ import "./stepper.css";
 import "./seo-content.css";
 import "./raw2dng-layout.css";
 import "./typography-overrides.css";
+import "./resolution.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://tools.wonderstudio.tw"),

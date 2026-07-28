@@ -2,10 +2,15 @@
   color: var(--ink);
 }
 
-@media (max-width: 760px) {
+.topBar,
+.bottomBar {
+  display: contents;
+}
+
+@media (max-width:860px) {
   .header {
     min-height: 60px;
-    padding: 12px 5vw 10px;
+    padding: 12px 0 10px;
     flex-wrap: wrap;
     gap: 8px 14px;
     align-items: center;
@@ -21,23 +26,39 @@
     white-space: nowrap;
   }
 
-  .header :global(nav) {
-    order: 3;
+  .topBar {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0 5vw;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .bottomBar {
+    display: block;
     flex: 0 0 100%;
-    width: 100%;
+    width: 100vw;
+    order: 3;
+  }
+
+  .bottomBar :global(nav) {
+    flex: 0 0 100%;
     max-width: none;
     justify-content: flex-start;
     gap: 2px;
-    overflow-x: auto;
+    overflow-x: scroll;
+    padding-right: 5vw;
+    padding-left: calc(5vw - 10px);
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
 
-  .header :global(nav::-webkit-scrollbar) {
+  .bottomBar :global(nav::-webkit-scrollbar) {
     display: none;
   }
 
-  .header :global(nav a) {
+  .bottomBar :global(nav a) {
     flex: 0 0 auto;
     padding: 8px 12px;
     font-size: 0.78rem;
@@ -45,7 +66,7 @@
     white-space: nowrap;
   }
 
-  .header :global(.language-switch) {
+  .topBar :global(.language-switch) {
     margin-left: auto;
   }
 }
