@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 type Preference = "1" | "2" | "4" | "8" | "10-preferred" | "16";
+type GrowthLimit = "none" | "source" | "percentage";
 type Language = "en" | "zh-Hant";
 
 type Result = {
@@ -27,6 +28,7 @@ const copy = {
     errorPositive: "Enter positive values for every field.", errorInteger: "Source pixels must be whole numbers.", errorPrecision: "The physical ratio has too many decimal places. Try rounding it first.",
     noResult: "No suitable resolution was found.", noChange: "No change", bothTen: "Both sides are multiples of 10", widthTen: "Width is a multiple of 10", heightTen: "Height is a multiple of 10",
     multiple: "Both sides are multiples of {value}", closest: "Closest whole-pixel size",
+    limit: "OUTPUT LIMIT", limitNone: "No limit", limitSource: "Do not exceed source", limitPercentage: "Custom maximum increase", percentage: "Maximum increase per side (%)", invalidPercentage: "Enter a non-negative percentage.",
   },
   "zh-Hant": {
     source: "原始像素", physical: "實際比例", preference: "像素尺寸偏好",
@@ -38,6 +40,7 @@ const copy = {
     errorPositive: "請在每個欄位輸入大於 0 的數值。", errorInteger: "原始解析度必須是整數像素。", errorPrecision: "實際尺寸的小數位過多，請先適度四捨五入。",
     noResult: "找不到符合條件的解析度。", noChange: "不需調整", bothTen: "寬、高皆為 10 的倍數", widthTen: "寬度為 10 的倍數", heightTen: "高度為 10 的倍數",
     multiple: "寬、高皆為 {value} 的倍數", closest: "最接近原圖的整數尺寸",
+    limit: "輸出限制", limitNone: "不限制", limitSource: "不高於輸入解析度", limitPercentage: "自訂最大放大比例", percentage: "寬、高最多增加 (%)", invalidPercentage: "請輸入大於或等於 0 的百分比。",
   },
 } as const;
 
@@ -49,26 +52,33 @@ function idealScale(imageWidth: number, imageHeight: number, ratioWidth: number,
 function error(width: number, height: number, sourceWidth: number, sourceHeight: number) { return ((width - sourceWidth) / sourceWidth) ** 2 + ((height - sourceHeight) / sourceHeight) ** 2; }
 function candidateScales(ideal: number, multiple: number, range = 8) { const values = new Set<number>(); for (const center of [Math.floor(ideal / multiple), Math.round(ideal / multiple), Math.ceil(ideal / multiple)]) for (let offset = -range; offset <= range; offset += 1) if (center + offset >= 1) values.add((center + offset) * multiple); return [...values]; }
 
-function calculate(sourceWidth: number, sourceHeight: number, physicalWidth: number, physicalHeight: number, preference: Preference, language: Language): { result?: Result; error?: string } {
+function calculate(sourceWidth: number, sourceHeight: number, physicalWidth: number, physicalHeight: number, preference: Preference, growthLimit: GrowthLimit, maxGrowth: number, language: Language): { result?: Result; error?: string } {
   const t = copy[language];
   if ([sourceWidth, sourceHeight, physicalWidth, physicalHeight].some((value) => !Number.isFinite(value) || value <= 0)) return { error: t.errorPositive };
+  if (growthLimit === "percentage" && (!Number.isFinite(maxGrowth) || maxGrowth < 0)) return { error: t.invalidPercentage };
   if (!Number.isInteger(sourceWidth) || !Number.isInteger(sourceHeight)) return { error: t.errorInteger };
   const ratio = ratioFrom(physicalWidth, physicalHeight);
   if (ratio.width > 100000 || ratio.height > 100000) return { error: t.errorPrecision };
   const ideal = idealScale(sourceWidth, sourceHeight, ratio.width, ratio.height);
+  const allowedScale = growthLimit === "none" ? Infinity : Math.min(
+    sourceWidth * (1 + (growthLimit === "percentage" ? maxGrowth : 0) / 100) / ratio.width,
+    sourceHeight * (1 + (growthLimit === "percentage" ? maxGrowth : 0) / 100) / ratio.height,
+  );
   const getCandidate = (scale: number) => ({ width: ratio.width * scale, height: ratio.height * scale, scale, error: error(ratio.width * scale, ratio.height * scale, sourceWidth, sourceHeight) });
+  const candidatesAroundLimit = (multiple: number, range: number) => Number.isFinite(allowedScale) ? candidateScales(allowedScale, multiple, range) : [];
   let best: ReturnType<typeof getCandidate> | undefined;
   let preferenceLabel = "";
   if (preference === "10-preferred") {
-    const candidates = [...candidateScales(ideal, 10 / gcd(ratio.width, 10)), ...candidateScales(ideal, 10 / gcd(ratio.height, 10))].map(getCandidate).filter((item, index, all) => all.findIndex((other) => other.scale === item.scale) === index).sort((a, b) => a.error - b.error);
+    const candidates = [...candidateScales(ideal, 10 / gcd(ratio.width, 10)), ...candidateScales(ideal, 10 / gcd(ratio.height, 10)), ...candidatesAroundLimit(10 / gcd(ratio.width, 10), 8), ...candidatesAroundLimit(10 / gcd(ratio.height, 10), 8)].map(getCandidate).filter((item, index, all) => all.findIndex((other) => other.scale === item.scale) === index).filter((item) => item.scale <= allowedScale + 1e-9).sort((a, b) => a.error - b.error);
     const closest = candidates[0];
+    if (!closest) return { error: t.noResult };
     const both = candidates.filter((item) => item.width % 10 === 0 && item.height % 10 === 0)[0];
     best = both && both.error <= closest.error * 1.1 ? both : closest;
     preferenceLabel = best.width % 10 === 0 && best.height % 10 === 0 ? t.bothTen : best.width % 10 === 0 ? t.widthTen : t.heightTen;
   } else {
     const multiplier = Number(preference);
     const required = lcm(multiplier / gcd(ratio.width, multiplier), multiplier / gcd(ratio.height, multiplier));
-    best = candidateScales(ideal, required, 5).map(getCandidate).sort((a, b) => a.error - b.error)[0];
+    best = [...candidateScales(ideal, required, 5), ...candidatesAroundLimit(required, 8)].map(getCandidate).filter((item, index, all) => all.findIndex((other) => other.scale === item.scale) === index).filter((item) => item.scale <= allowedScale + 1e-9).sort((a, b) => a.error - b.error)[0];
     preferenceLabel = multiplier === 1 ? t.closest : t.multiple.replace("{value}", String(multiplier));
   }
   if (!best) return { error: t.noResult };
@@ -81,15 +91,17 @@ export function ResolutionCalculator({ locale }: { locale: Language }) {
   const t = copy[locale];
   const [sourceWidth, setSourceWidth] = useState("4032"); const [sourceHeight, setSourceHeight] = useState("3024");
   const [physicalWidth, setPhysicalWidth] = useState("59.4"); const [physicalHeight, setPhysicalHeight] = useState("42"); const [preference, setPreference] = useState<Preference>("2");
-  const outcome = useMemo(() => calculate(Number(sourceWidth), Number(sourceHeight), Number(physicalWidth), Number(physicalHeight), preference, locale), [sourceWidth, sourceHeight, physicalWidth, physicalHeight, preference, locale]);
+  const [growthLimit, setGrowthLimit] = useState<GrowthLimit>("none"); const [maxGrowth, setMaxGrowth] = useState("10");
+  const outcome = useMemo(() => calculate(Number(sourceWidth), Number(sourceHeight), Number(physicalWidth), Number(physicalHeight), preference, growthLimit, Number(maxGrowth), locale), [sourceWidth, sourceHeight, physicalWidth, physicalHeight, preference, growthLimit, maxGrowth, locale]);
   const numberField = (label: string, value: string, onChange: (value: string) => void, integer = false) => <label><span>{label}</span><input type="number" min={integer ? "1" : "0.000001"} step={integer ? "1" : "any"} value={value} onChange={(event) => onChange(event.target.value)} /></label>;
-  const reset = () => { setSourceWidth("4032"); setSourceHeight("3024"); setPhysicalWidth("59.4"); setPhysicalHeight("42"); setPreference("2"); };
+  const reset = () => { setSourceWidth("4032"); setSourceHeight("3024"); setPhysicalWidth("59.4"); setPhysicalHeight("42"); setPreference("2"); setGrowthLimit("none"); setMaxGrowth("10"); };
   const result = outcome.result;
   return <section className="resolution-workbench">
     <div className="resolution-controls">
       <div className="resolution-section"><div className="resolution-section-heading"><p className="kicker">01 / {t.source}</p><p>{t.sourceNote}</p></div><div className="resolution-size-inputs">{numberField(`${t.width} / px`, sourceWidth, setSourceWidth, true)}<b aria-hidden="true">×</b>{numberField(`${t.height} / px`, sourceHeight, setSourceHeight, true)}</div></div>
       <div className="resolution-section"><div className="resolution-section-heading"><p className="kicker">02 / {t.physical}</p><p>{t.physicalNote}</p></div><div className="resolution-size-inputs">{numberField(t.width, physicalWidth, setPhysicalWidth)}<b aria-hidden="true">×</b>{numberField(t.height, physicalHeight, setPhysicalHeight)}</div><p className="resolution-units">{t.units}</p></div>
       <div className="resolution-section resolution-preference"><label><span>03 / {t.preference}</span><select value={preference} onChange={(event) => setPreference(event.target.value as Preference)}><option value="1">{t.any}</option><option value="2">{t.even}</option><option value="4">{t.four}</option><option value="8">{t.eight}</option><option value="10-preferred">{t.ten}</option><option value="16">{t.sixteen}</option></select></label></div>
+      <div className="resolution-section resolution-preference"><label><span>04 / {t.limit}</span><select value={growthLimit} onChange={(event) => setGrowthLimit(event.target.value as GrowthLimit)}><option value="none">{t.limitNone}</option><option value="source">{t.limitSource}</option><option value="percentage">{t.limitPercentage}</option></select></label>{growthLimit === "percentage" ? <label className="resolution-percentage"><span>{t.percentage}</span><input type="number" min="0" step="1" value={maxGrowth} onChange={(event) => setMaxGrowth(event.target.value)} /></label> : null}</div>
       <div className="resolution-actions"><button type="button" onClick={() => document.getElementById("resolution-output")?.scrollIntoView({ behavior: "smooth", block: "nearest" })}>{t.calculate}</button><button type="button" className="resolution-reset" onClick={reset}>{t.reset}</button></div>
       {outcome.error ? <p className="resolution-warning" role="alert">{outcome.error}</p> : null}
     </div>
