@@ -23,7 +23,7 @@ const copy = {
     width: "Width", height: "Height", units: "Any matching unit", calculate: "Match ratio",
     reset: "Reset example", result: "RECOMMENDED OUTPUT", exact: "EXACT RATIO", preferenceResult: "PREFERENCE RESULT",
     difference: "TOTAL PIXEL DIFFERENCE", widthChange: "WIDTH CHANGE", heightChange: "HEIGHT CHANGE", area: "AREA CHANGE",
-    sourceNote: "Your original image dimensions.", physicalNote: "Any unit; use the same for width and height.",
+    sourceNote: "Your original image dimensions.", physicalNote: "Use any one unit consistently: mm, cm, inches, etc.",
     any: "Any integer — closest to the source", even: "Even — both sides divisible by 2", four: "Multiple of 4 — both sides", eight: "Multiple of 8 — both sides", ten: "Prefer 10 — at least one side", sixteen: "Multiple of 16 — both sides",
     errorPositive: "Enter positive values for every field.", errorInteger: "Source pixels must be whole numbers.", errorPrecision: "The physical ratio has too many decimal places. Try rounding it first.",
     noResult: "No suitable resolution was found.", noChange: "No change", bothTen: "Both sides are multiples of 10", widthTen: "Width is a multiple of 10", heightTen: "Height is a multiple of 10",
@@ -35,7 +35,7 @@ const copy = {
     width: "寬度", height: "高度", units: "使用任一相同單位", calculate: "Match Ratio",
     reset: "重設範例", result: "建議輸出尺寸", exact: "精確比例", preferenceResult: "偏好結果",
     difference: "總像素差異", widthChange: "寬度調整", heightChange: "高度調整", area: "面積變化",
-    sourceNote: "輸入原始圖片的像素尺寸。", physicalNote: "單位不限，寬高一致。",
+    sourceNote: "輸入原始圖片的像素尺寸。", physicalNote: "可使用 mm、cm、吋等任一單位，寬高須一致。",
     any: "任意整數：最接近原圖", even: "偶數：寬高皆為 2 的倍數", four: "4 的倍數：寬高皆符合", eight: "8 的倍數：寬高皆符合", ten: "偏好 10：至少一邊符合", sixteen: "16 的倍數：寬高皆符合",
     errorPositive: "請在每個欄位輸入大於 0 的數值。", errorInteger: "原始解析度必須是整數像素。", errorPrecision: "實際尺寸的小數位過多，請先適度四捨五入。",
     noResult: "找不到符合條件的解析度。", noChange: "不需調整", bothTen: "寬、高皆為 10 的倍數", widthTen: "寬度為 10 的倍數", heightTen: "高度為 10 的倍數",
@@ -99,7 +99,7 @@ export function ResolutionCalculator({ locale }: { locale: Language }) {
   return <section className="resolution-workbench">
     <div className="resolution-controls">
       <div className="resolution-section"><div className="resolution-section-heading"><p className="kicker">01 / {t.source}</p><p>{t.sourceNote}</p></div><div className="resolution-size-inputs">{numberField(`${t.width} / px`, sourceWidth, setSourceWidth, true)}<b aria-hidden="true">×</b>{numberField(`${t.height} / px`, sourceHeight, setSourceHeight, true)}</div></div>
-      <div className="resolution-section"><div className="resolution-section-heading"><p className="kicker">02 / {t.physical}</p><p>{t.physicalNote}</p></div><div className="resolution-size-inputs">{numberField(t.width, physicalWidth, setPhysicalWidth)}<b aria-hidden="true">×</b>{numberField(t.height, physicalHeight, setPhysicalHeight)}</div><p className="resolution-units">{t.units}</p></div>
+      <div className="resolution-section"><div className="resolution-section-heading"><p className="kicker">02 / {t.physical}</p><p className="nowrap-note">{t.physicalNote}</p></div><div className="resolution-size-inputs">{numberField(t.width, physicalWidth, setPhysicalWidth)}<b aria-hidden="true">×</b>{numberField(t.height, physicalHeight, setPhysicalHeight)}</div><p className="resolution-units">{t.units}</p></div>
       <div className="resolution-section resolution-preference"><label><span>03 / {t.preference}</span><select value={preference} onChange={(event) => setPreference(event.target.value as Preference)}><option value="1">{t.any}</option><option value="2">{t.even}</option><option value="4">{t.four}</option><option value="8">{t.eight}</option><option value="10-preferred">{t.ten}</option><option value="16">{t.sixteen}</option></select></label></div>
       <div className="resolution-section resolution-preference"><label><span>04 / {t.limit}</span><select value={growthLimit} onChange={(event) => setGrowthLimit(event.target.value as GrowthLimit)}><option value="none">{t.limitNone}</option><option value="source">{t.limitSource}</option><option value="percentage">{t.limitPercentage}</option></select></label>{growthLimit === "percentage" ? <label className="resolution-percentage"><span>{t.percentage}</span><input type="number" min="0" step="1" value={maxGrowth} onChange={(event) => setMaxGrowth(event.target.value)} /></label> : null}</div>
       <div className="resolution-actions"><button type="button" onClick={() => document.getElementById("resolution-output")?.scrollIntoView({ behavior: "smooth", block: "nearest" })}>{t.calculate}</button><button type="button" className="resolution-reset" onClick={reset}>{t.reset}</button></div>

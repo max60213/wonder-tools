@@ -41,6 +41,10 @@
   line-height: 1.45;
   text-align: right;
 }
+.resolution-section-heading .nowrap-note {
+  max-width: none;
+  white-space: nowrap;
+}
 .resolution-size-inputs {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr);
