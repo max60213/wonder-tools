@@ -81,11 +81,12 @@
 }
 .resolution-reset {
   width: auto;
-  margin-top: 32px;
-  padding-inline: 16px;
+  margin: 0;
+  padding: 8px 12px;
   border: 1px solid rgb(255 255 255 / 0.35);
   background: transparent;
   color: white;
+  font-size: 0.72rem;
 }
 .resolution-reset:hover {
   border-color: white;
@@ -163,6 +164,11 @@
   padding: 14px 0;
   border-bottom: 1px solid rgb(255 255 255 / 0.12);
 }
+.resolution-details > .resolution-reset-slot {
+  display: flex;
+  align-items: end;
+  justify-content: flex-end;
+}
 .resolution-details dt {
   color: #b8c7be;
   font:
@@ -222,7 +228,7 @@
   .resolution-details {
     grid-template-columns: 1fr;
   }
-  .resolution-reset {
+  .resolution-details > .resolution-reset-slot {
     width: 100%;
   }
 }
