@@ -23,7 +23,7 @@ const copy = {
     width: "Width", height: "Height", units: "Any matching unit", calculate: "Match ratio",
     reset: "Reset example", result: "RECOMMENDED OUTPUT", exact: "EXACT RATIO", preferenceResult: "PREFERENCE RESULT",
     difference: "TOTAL PIXEL DIFFERENCE", widthChange: "WIDTH CHANGE", heightChange: "HEIGHT CHANGE", area: "AREA CHANGE",
-    sourceNote: "Your original image dimensions.", physicalNote: "Use any one unit consistently: mm, cm, inches, etc.",
+    sourceNote: "Your original image dimensions.", physicalNote: "Any unit; use the same for width and height.",
     any: "Any integer — closest to the source", even: "Even — both sides divisible by 2", four: "Multiple of 4 — both sides", eight: "Multiple of 8 — both sides", ten: "Prefer 10 — at least one side", sixteen: "Multiple of 16 — both sides",
     errorPositive: "Enter positive values for every field.", errorInteger: "Source pixels must be whole numbers.", errorPrecision: "The physical ratio has too many decimal places. Try rounding it first.",
     noResult: "No suitable resolution was found.", noChange: "No change", bothTen: "Both sides are multiples of 10", widthTen: "Width is a multiple of 10", heightTen: "Height is a multiple of 10",
